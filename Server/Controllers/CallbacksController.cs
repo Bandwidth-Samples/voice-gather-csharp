@@ -31,7 +31,7 @@ namespace Server.Controllers
         [HttpPost("gatherCallback")]
         public async Task<ActionResult> Gather()
         {
-            _logger.LogInformation("Received gather callback request.");
+            _logger.LogInformation($"{Request.Path.Value} requested.");
 
             using var reader = new StreamReader(Request.Body, Encoding.UTF8);
             var body = await reader.ReadToEndAsync();
@@ -45,6 +45,7 @@ namespace Server.Controllers
                 case "gather":
                     var digits = (string)json["digits"];
 
+                    // Respond to the user's selection with a response that a valid or invalid selection was made.
                     var sentence = new List<string> { "1", "2" }
                         .Any(digits.Contains) ? $"You have chosen option {digits}, thank you." : "An invalid option has been chosen.";
 
@@ -62,6 +63,7 @@ namespace Server.Controllers
                     response.Add(gather);
                     break;
                 default:
+                    // When an invalid event type is returned respond with the event type and end the call.
                     var speakSentence = new SpeakSentence
                     {
                         Sentence = $"{eventType} event received, ending call."
@@ -71,21 +73,16 @@ namespace Server.Controllers
                     break;
             }
 
+            // Convert the response to BXML before sending.
             return new OkObjectResult(response.ToBXML());
         }
 
         [HttpPost("callAnsweredCallback")]
-        public async Task<ActionResult> CallAnswered()
+        public ActionResult CallAnswered()
         {
-            _logger.LogInformation("Received call answered callback request.");
+            _logger.LogInformation($"{Request.Path.Value} requested.");
 
-            using var reader = new StreamReader(Request.Body, Encoding.UTF8);
-            var body = await reader.ReadToEndAsync();
-
-            _logger.LogInformation(body);
-
-            var response = new Response();
-
+            // Start gathering the user's input for the call.
             var gather = new Gather()
             {
                 GatherUrl = $"{BaseUrl}/callbacks/gatherCallback",
@@ -97,52 +94,37 @@ namespace Server.Controllers
                 }
             };
 
-            response.Add(gather);
-            
+            var response = new Response(gather);
+
             return new OkObjectResult(response.ToBXML());
         }
 
         [HttpPost("callDisconnectCallback")]
-        public async Task<ActionResult> CallDisconnect()
+        public ActionResult CallDisconnect()
         {
-            _logger.LogInformation("Received call disconnect callback request.");
-
-            using var reader = new StreamReader(Request.Body, Encoding.UTF8);
-            var body = await reader.ReadToEndAsync();
-
-            _logger.LogInformation(body);
+            _logger.LogInformation($"{Request.Path.Value} requested.");
+            _logger.LogInformation("Disconnect event received. Call ended.");
 
             return new OkResult();
         }
                    
         [HttpPost("callInitiatedCallback")]
-        public async Task<ActionResult> CallInitiated()
+        public ActionResult CallInitiated()
         {
-            _logger.LogInformation("Received call initiated callback request.");
-
-            using var reader = new StreamReader(Request.Body, Encoding.UTF8);
-            var body = await reader.ReadToEndAsync();
-            
-            _logger.LogInformation(body);
+            _logger.LogInformation($"{Request.Path.Value} requested.");
 
             var speakSentence = new SpeakSentence();
             speakSentence.Sentence = "Initiate event received. Ending call.";
 
-            var response = new Response();
-            response.Add(speakSentence);
+            var response = new Response(speakSentence);
 
             return new OkObjectResult(response.ToBXML());
         }
 
         [HttpPost("callStatusCallback")]
-        public async Task<ActionResult> CallStatus()
+        public ActionResult CallStatus()
         {
-            _logger.LogInformation("Received call status callback request.");
-
-            using var reader = new StreamReader(Request.Body, Encoding.UTF8);
-            var body = await reader.ReadToEndAsync();
-
-            _logger.LogInformation(body);
+            _logger.LogInformation($"{Request.Path.Value} requested.");
 
             return new OkResult();
         }
