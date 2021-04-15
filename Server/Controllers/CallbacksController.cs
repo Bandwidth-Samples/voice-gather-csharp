@@ -19,7 +19,7 @@ namespace Server.Controllers
     public class CallbacksController : ControllerBase
     {
         // The base url to use for voice callbacks.
-        private static readonly string BaseUrl = System.Environment.GetEnvironmentVariable("BASE_URL");
+        private static readonly string BaseUrl = System.Environment.GetEnvironmentVariable("BASE_CALLBACK_URL");
 
         private readonly ILogger<CallbacksController> _logger;
 

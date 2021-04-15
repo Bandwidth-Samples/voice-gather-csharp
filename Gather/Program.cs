@@ -11,31 +11,31 @@ namespace Gather
     class Program
     {
         // Bandwidth provided username.
-        private static readonly string Username = System.Environment.GetEnvironmentVariable("BANDWIDTH_API_USER");
+        private static readonly string Username = System.Environment.GetEnvironmentVariable("BW_USERNAME");
 
         // Bandwidth provided password.
-        private static readonly string Password = System.Environment.GetEnvironmentVariable("BANDWIDTH_API_PASSWORD");
+        private static readonly string Password = System.Environment.GetEnvironmentVariable("BW_PASSWORD");
 
         // Bandwidth provided messaging token.
-        private static readonly string Token = System.Environment.GetEnvironmentVariable("BANDWIDTH_MESSAGING_TOKEN");
+        private static readonly string Token = System.Environment.GetEnvironmentVariable("BW_MESSAGING_TOKEN");
         
         // Bandwidth provided messaging secret.
-        private static readonly string Secret = System.Environment.GetEnvironmentVariable("BANDWIDTH_MESSAGING_SECRET");
+        private static readonly string Secret = System.Environment.GetEnvironmentVariable("BW_MESSAGING_SECRET");
 
         // Bandwidth provided application id.
-        private static readonly string ApplicationId = System.Environment.GetEnvironmentVariable("BANDWIDTH_VOICE_APPLICATION_ID");
+        private static readonly string ApplicationId = System.Environment.GetEnvironmentVariable("BW_VOICE_APPLICATION_ID");
 
         // Bandwidth provided account id.
-        private static readonly string AccountId = System.Environment.GetEnvironmentVariable("BANDWIDTH_ACCOUNT_ID");
+        private static readonly string AccountId = System.Environment.GetEnvironmentVariable("BW_ACCOUNT_ID");
 
         // The phone number to send the message from.
-        private static readonly string From = System.Environment.GetEnvironmentVariable("BANDWIDTH_FROM");
+        private static readonly string From = System.Environment.GetEnvironmentVariable("BW_NUMBER");
         
         // The phone number to send the message to.
-        private static readonly string To = System.Environment.GetEnvironmentVariable("BANDWIDTH_TO");
+        private static readonly string To = System.Environment.GetEnvironmentVariable("USER_NUMBER");
 
         // The base url to use for voice callbacks.
-        private static readonly string BaseUrl = System.Environment.GetEnvironmentVariable("BASE_URL");
+        private static readonly string BaseUrl = System.Environment.GetEnvironmentVariable("BASE_CALLBACK_URL");
 
         static async Task Main(string[] args)
         {
