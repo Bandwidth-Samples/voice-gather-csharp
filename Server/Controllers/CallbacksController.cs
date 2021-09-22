@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Bandwidth.Standard.Messaging.Models;
 using Bandwidth.Standard.Voice.Bxml;
 using Bandwidth.Standard.Voice.Models;
 using Microsoft.AspNetCore.Mvc;
