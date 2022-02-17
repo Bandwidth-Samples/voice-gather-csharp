@@ -1,9 +1,9 @@
 # Gather Digits
-
+++++
 <a href="https://dev.bandwidth.com/docs/voice/quickStart">
   <p style="text-align:center:"><img src="./icon-voice.svg" width="200" height="auto" title="Voice Quick Start Guide" alt="Voice Quick Start Guide"/></p>
 </a>
-
+++++
  # Table of Contents
 
 * [Description](#description)
