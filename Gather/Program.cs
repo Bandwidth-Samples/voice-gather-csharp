@@ -16,12 +16,6 @@ namespace Gather
         // Bandwidth provided password.
         private static readonly string Password = System.Environment.GetEnvironmentVariable("BW_PASSWORD");
 
-        // Bandwidth provided messaging token.
-        private static readonly string Token = System.Environment.GetEnvironmentVariable("BW_MESSAGING_TOKEN");
-        
-        // Bandwidth provided messaging secret.
-        private static readonly string Secret = System.Environment.GetEnvironmentVariable("BW_MESSAGING_SECRET");
-
         // Bandwidth provided application id.
         private static readonly string ApplicationId = System.Environment.GetEnvironmentVariable("BW_VOICE_APPLICATION_ID");
 

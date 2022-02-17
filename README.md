@@ -30,16 +30,26 @@ For more information about API credentials see our [Account Credentials](https:/
 Use the following command/s to run the application:
 
 ```sh
-dotnet run
+cd ./Server     
+dotnet run      # To start the local server
+cd ../Gather
+dotnet run      # To run the gather project
 ```
 
-Or open the project in Microsoft Visual Studio and run using the button in the toolbar.
+This can be accomplisehd by opening both projects in Microsoft Visual Studio and run using the button in the toolbar.
+Note that the Server project must be ran before the Gather project.
 
 # Environmental Variables
 
 The sample app uses the below environmental variables.
 
 ```sh
+BW_ACCOUNT_ID                        # Your Bandwidth Account Id
+BW_USERNAME                          # Your Bandwidth API Username
+BW_PASSWORD                          # Your Bandwidth API Password
+BW_NUMBER                            # The Bandwidth phone number involved with this application
+USER_NUMBER                          # The user's phone number involved with this application
+BW_VOICE_APPLICATION_ID              # Your Voice Application Id created in the dashboard
 BASE_CALLBACK_URL                    # Your public base url to receive Bandwidth Webhooks. No trailing '/'
 ```
 
@@ -50,6 +60,7 @@ For a detailed introduction, check out our [Bandwidth Voice Callbacks](https://d
 Below are the callback paths:
 * `/callbacks/gatherCallback` Hit once the gather has been completed
 * `/callbacks/callAnsweredCallback` Hit once the phone call is answered
+* `/callbacks/callDisconnectCallback` Hit if the phone call is disconnected
 
 ## Ngrok
 
