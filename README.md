@@ -61,6 +61,8 @@ Below are the callback paths:
 * `/callbacks/gatherCallback` Hit once the gather has been completed
 * `/callbacks/callAnsweredCallback` Hit once the phone call is answered
 * `/callbacks/callDisconnectCallback` Hit if the phone call is disconnected
+* `/callbacks/callInitiatedCallback` Hit when the phone call is initiated
+* `/callbacks/callStatusCallback` Hit to log the call status
 
 ## Ngrok
 
