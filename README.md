@@ -27,7 +27,7 @@ For more information about API credentials see our [Account Credentials](https:/
  
 # Running the Application
 
-Use the following command/s to run the application:
+Use the following commands to run the application:
 
 ```sh
 cd ./Server     
@@ -36,7 +36,7 @@ cd ../Gather
 dotnet run      # To run the gather project
 ```
 
-This can be accomplisehd by opening both projects in Microsoft Visual Studio and run using the button in the toolbar.
+This can be accomplished by opening both projects in Microsoft Visual Studio and running them using the button in the toolbar.
 Note that the Server project must be ran before the Gather project.
 
 # Environmental Variables
