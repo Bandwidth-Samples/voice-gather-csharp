@@ -33,12 +33,12 @@ The sample app uses the below environmental variables.
 
 ```sh
 BW_ACCOUNT_ID                        # Your Bandwidth Account Id
-BW_USERNAME                          # Your Bandwidth API Username
-BW_PASSWORD                          # Your Bandwidth API Password
+BW_CLIENT_ID                         # Your Bandwidth API OAuth Client Id
+BW_CLIENT_SECRET                     # Your Bandwidth API OAuth Client Secret
 BW_NUMBER                            # The Bandwidth phone number involved with this application
-USER_NUMBER                          # The user's phone number involved with this application
 BW_VOICE_APPLICATION_ID              # Your Voice Application Id created in the dashboard
 BASE_CALLBACK_URL                    # Your public base url to receive Bandwidth Webhooks. No trailing '/'
+LOCAL_PORT                           # The port number you wish to run the sample on
 ```
  
 # Running the Application
@@ -57,16 +57,15 @@ For a detailed introduction to Bandwidth Callbacks see https://dev.bandwidth.com
 Below are the callback paths:
 * `/calls`                          - POST to create a call to a phone number specified
 * `/callbacks/outbound/voice`       - Bandwidth will POST a callback to this endpoint (setup in https://dashboard.bandwidth.com)
-* `/callbacks/outbound/gather`      - Bandwidth will POST a callback here once the Gather has finished.
+* `/callbacks/outbound/voice/gather` - Bandwidth will POST a callback here once the Gather has finished.
 
 ## Ngrok
 
 A simple way to set up a local callback URL for testing is to use the free tool [ngrok](https://ngrok.com/).  
-After you have downloaded and installed `ngrok` run the following command to open a public tunnel to your port (5001)
+After you have downloaded and installed `ngrok` run the following command to open a public tunnel to your port (`$LOCAL_PORT`)
 ```cmd
-ngrok http 5001
+ngrok http $LOCAL_PORT
 ```
 
 You can view your public URL at `http://127.0.0.1:4040` after ngrok is running.  You can also view the status of the tunnel and requests/responses here.
 
-*Note: If you would like to change your port number feel free to do so. However, if you do change the port you will also need to change the number appended to the application URL in the `launchSettings.json` file located in `VoiceGather/Properties/`*

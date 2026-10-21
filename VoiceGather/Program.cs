@@ -5,90 +5,98 @@ using Bandwidth.Standard.Model.Bxml;
 using Bandwidth.Standard.Model.Bxml.Verbs;
 using Newtonsoft.Json;
 
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
-
-string BW_USERNAME;
-string BW_PASSWORD;
-string BW_VOICE_APPLICATION_ID;
-string BW_ACCOUNT_ID;
-string BW_NUMBER;
-string BASE_CALLBACK_URL;
-
 //Setting up environment variables
-try
-{
-    BW_USERNAME = Environment.GetEnvironmentVariable("BW_USERNAME");
-    BW_PASSWORD = Environment.GetEnvironmentVariable("BW_PASSWORD");
-    BW_VOICE_APPLICATION_ID = Environment.GetEnvironmentVariable("BW_VOICE_APPLICATION_ID");
-    BW_ACCOUNT_ID = Environment.GetEnvironmentVariable("BW_ACCOUNT_ID");
-    BW_NUMBER = Environment.GetEnvironmentVariable("BW_NUMBER");
-    BASE_CALLBACK_URL = Environment.GetEnvironmentVariable("BASE_CALLBACK_URL");
-}
-catch (Exception)
+string? BW_ACCOUNT_ID = Environment.GetEnvironmentVariable("BW_ACCOUNT_ID");
+string? BW_CLIENT_ID = Environment.GetEnvironmentVariable("BW_CLIENT_ID");
+string? BW_CLIENT_SECRET = Environment.GetEnvironmentVariable("BW_CLIENT_SECRET");
+string? BW_VOICE_APPLICATION_ID = Environment.GetEnvironmentVariable("BW_VOICE_APPLICATION_ID");
+string? BW_NUMBER = Environment.GetEnvironmentVariable("BW_NUMBER");
+string? BASE_CALLBACK_URL = Environment.GetEnvironmentVariable("BASE_CALLBACK_URL");
+string? LOCAL_PORT = Environment.GetEnvironmentVariable("LOCAL_PORT");
+
+if (BW_ACCOUNT_ID == null || BW_CLIENT_ID == null || BW_CLIENT_SECRET == null || BW_VOICE_APPLICATION_ID == null
+    || BW_NUMBER == null || BASE_CALLBACK_URL == null || !int.TryParse(LOCAL_PORT, out int port))
 {
     Console.WriteLine("Please set the environmental variables defined in the README");
-    throw;
+    Environment.Exit(1);
+    return;
 }
 
+var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls($"http://localhost:{port}");
+var app = builder.Build();
+
 Configuration configuration = new Configuration();
-configuration.Username = BW_USERNAME;
-configuration.Password = BW_PASSWORD;
+configuration.OAuthClientId = BW_CLIENT_ID;
+configuration.OAuthClientSecret = BW_CLIENT_SECRET;
+
+async Task<Dictionary<string, object>?> ReadBody(HttpContext context)
+{
+    try
+    {
+        using var streamReader = new StreamReader(context.Request.Body);
+        return JsonConvert.DeserializeObject<Dictionary<string, object>>(await streamReader.ReadToEndAsync());
+    }
+    catch (JsonException)
+    {
+        return null;
+    }
+}
 
 app.MapPost("/calls", async (HttpContext context) =>
-{ 
-    var requestBody = new Dictionary<string, string>();
-    using(var streamReader = new StreamReader(context.Request.Body))
+{
+    var requestBody = await ReadBody(context);
+    if (requestBody == null || !requestBody.TryGetValue("to", out var to) || to is not string toNumber)
     {
-        var body = await streamReader.ReadToEndAsync();
-        requestBody = JsonConvert.DeserializeObject<Dictionary<string,string>>(body);
+        return Results.BadRequest();
     }
 
     CreateCall createCall = new CreateCall(
-        to: requestBody["to"],
+        to: toNumber,
         from: BW_NUMBER,
         applicationId: BW_VOICE_APPLICATION_ID,
         answerUrl: BASE_CALLBACK_URL + "/callbacks/outbound/voice"
     );
 
-    CallsApi apiInstance = new CallsApi(configuration);
     try
     {
-        // Create a call
-        var result = await apiInstance.CreateCallAsync(BW_ACCOUNT_ID, createCall);
+        CallsApi apiInstance = new CallsApi(configuration);
+        await apiInstance.CreateCallAsync(BW_ACCOUNT_ID, createCall);
     }
-    catch (ApiException e)
+    catch (Exception e)
     {
-        Console.WriteLine("Exception when calling CallsApi.CreateCall: " + e.Message);
+        Console.WriteLine($"Failed to create call: {e.Message}");
+        return Results.StatusCode(500);
     }
 
+    return Results.Ok();
 });
 
 app.MapPost("/callbacks/outbound/voice", async (HttpContext context) =>
 {
-    var requestBody = new Dictionary<string, string>();
-    using(var streamReader = new StreamReader(context.Request.Body))
+    var requestBody = await ReadBody(context);
+    if (requestBody == null)
     {
-        var body = await streamReader.ReadToEndAsync();
-        requestBody = JsonConvert.DeserializeObject<Dictionary<string,string>>(body);
+        return Results.BadRequest();
     }
-    
-    var response = new Response();
 
-    switch (requestBody["eventType"])
+    var response = new Response();
+    requestBody.TryGetValue("eventType", out var eventType);
+
+    switch (eventType?.ToString())
     {
         case "answer":
             response.Add
             (
                 new Gather()
                 {
-                    GatherUrl = BASE_CALLBACK_URL + "/callbacks/outbound/gather",
+                    GatherUrl = "/callbacks/outbound/voice/gather",
                     TerminatingDigits = "#",
                     SpeakSentence = new List<SpeakSentence>()
                     {
                         new SpeakSentence()
                         {
-                            Text = "Press 1 to choose option 1. Press 2 to say you chose option 2. Hit pound when you are finished."
+                            Text = "Press 1 to choose option 1. Press 2 to choose option 2. Press pound when you are finished."
                         }
                     }
                 }
@@ -108,66 +116,59 @@ app.MapPost("/callbacks/outbound/voice", async (HttpContext context) =>
             );
             break;
         case "disconnect":
-            Console.WriteLine("The Disconnect event is fired when a call ends, for any reason. The cause for a disconnect event on a call can be:");
-            Console.WriteLine($"Call {requestBody["callId"]} has disconnected");
+            Console.WriteLine($"Call {requestBody.GetValueOrDefault("callId")} has disconnected");
             break;
         default:
-            Console.WriteLine($"Unexpected event type {requestBody["eventType"]} received");
+            Console.WriteLine($"Unexpected event type {eventType} received");
             break;
     }
 
-    return response.ToBXML();
+    return Results.Content(response.ToBXML(), "application/xml");
 });
 
-app.MapPost("/callbacks/outbound/gather", async (HttpContext context) =>
+app.MapPost("/callbacks/outbound/voice/gather", async (HttpContext context) =>
 {
-    var requestBody = new Dictionary<string, string>();
-    using(var streamReader = new StreamReader(context.Request.Body))
+    var requestBody = await ReadBody(context);
+    if (requestBody == null || requestBody.GetValueOrDefault("eventType")?.ToString() != "gather")
     {
-        var body = await streamReader.ReadToEndAsync();
-        requestBody = JsonConvert.DeserializeObject<Dictionary<string,string>>(body);
+        return Results.BadRequest();
     }
-    
+
     var response = new Response();
+    var digits = requestBody.GetValueOrDefault("digits")?.ToString();
 
-    if (requestBody["eventType"] == "gather")
+    if (digits == "1")
     {
-        var digits = requestBody["digits"];
-        if (digits == "1")
-        {
-            response.Add
-            (
-                new SpeakSentence()
-                {
-                    Text = "You chose option 1. Good choice!"
-                }
-            );
-        }
-        else if (digits == "2")
-        {
-            response.Add
-            (
-                new SpeakSentence()
-                {
-                    Text = "You chose option 2. Good choice!"
-                }
-            );
-        }
-        else
-        {
-            response.Add
-            (
-                new SpeakSentence()
-                {
-                    Text = "You did not choose a valid option. Goodbye!"
-                }
-            );
-        }
+        response.Add
+        (
+            new SpeakSentence()
+            {
+                Text = "You chose option 1. Goodbye."
+            }
+        );
+    }
+    else if (digits == "2")
+    {
+        response.Add
+        (
+            new SpeakSentence()
+            {
+                Text = "You chose option 2. Goodbye."
+            }
+        );
+    }
+    else
+    {
+        response.Add
+        (
+            new SpeakSentence()
+            {
+                Text = "You did not choose a valid option. Goodbye."
+            }
+        );
     }
 
-    return response.ToBXML();
+    return Results.Content(response.ToBXML(), "application/xml");
 });
-
-
 
 app.Run();
