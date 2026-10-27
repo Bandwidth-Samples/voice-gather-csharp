@@ -69,7 +69,7 @@ app.MapPost("/calls", async (HttpContext context) =>
         return Results.StatusCode(500);
     }
 
-    return Results.Ok();
+    return Results.NoContent();
 });
 
 app.MapPost("/callbacks/outbound/voice", async (HttpContext context) =>
